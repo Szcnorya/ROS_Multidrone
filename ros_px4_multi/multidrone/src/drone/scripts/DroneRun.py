@@ -23,9 +23,6 @@ import time
 import json
 
 import DroneModule
-import FakeDroneSensor
-import FakeDroneGPS
-import CommRangeDetector
 
 '''[GLOBAL VARS]------------------------------------------------------------'''
 COMM_DROPOFF = 25
@@ -42,9 +39,11 @@ FAKE_GPS_ORIGIN_Z = 408.0
   counterparts.
 ----------------------------------------------------------------------------'''
 if __name__ == "__main__":
-  rospy.init_node("dronetest", anonymous = True)
+  rospy.init_node("DroneTest", anonymous = True)
 
-  numDrones = int(sys.argv[1])
+  # Parse Drone ID from argument
+  DroneID = int(sys.argv[1])
+
   # Desired grid resolution, number of drones, and communication radius (drone-to-drone range)
   resolutions = {'x':40,'y':40,'z':40}
 
@@ -67,23 +66,14 @@ if __name__ == "__main__":
   #Need to handle manually setting each drone's ID
   #print "[main] no droneGPS created: simulation GPS used instead"
 
-  #Fake gas sensor module data
-  gasSensors = {}
-
-  commDetector = CommRangeDetector.CommRangeDetector(2, COMM_DROPOFF)
-  print "[main] commDetector created"
-
-  drones = []
-  for i in range(numDrones):
-    drones.append(DroneModule.drone(bounds, i + 1))
-    print "[main] Drone id %d created" %i
-  print "[main] Drones created"
+  drone = DroneModule.drone(bounds, DroneID)
+  print "[main] Drone id %d created" % DroneID
 
   #TODO: Test aging exponent in sim
   print "[main] Starting loop!"
   
-  for d in drones:
-    d.start()
+  #TODO: Add a blocking barrier here waiting for take off message
+  drone.start()
 
   loop = 1
   while not rospy.is_shutdown():
@@ -94,52 +84,6 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
       print "[main] Rospy shutdown detected. Stopping drone ROS modules!"
-
-      for i in drones:
-        drones.callback("end")
-
-      print "[main] All drone modules stopped"
-
-    #TODO find way to parallelize the drones better
-    
-    '''
-    for i in range(1, numDrones + 1):
-      drones[i].PublishObj()
-      gasSensors[i].PublishGasSensorValue()
-    '''
-    '''
-    #publish objectives and air quality samples
-    for i in range(1,numDrones+1):
-      drones[i].PublishObj()
-      gasSensors[i].PublishGasSensorValue()
-    
-    commDetector.ProcessDroneSetGPS()
-    time.sleep(0.25)
-    
-    #update maps and check for inter-drone comms
-    for i in range(1,numDrones+1):
-      drones[i].UpdateMaps()
-      drones[i].CheckForTx()
-    
-    time.sleep(0.25)
-
-    #send inter-drone comms
-    for i in range(1,numDrones+1):
-      drones[i].SendDataTx()
-    
-    time.sleep(0.5)
-
-    for i in range(1,numDrones+1):
-      drones[i].UpdateMapsForDataTx()
-
-    time.sleep(0.25)
-
-    commDetector.CheckTxCorrect(drones)
-    
-    print "[main] [%d] Iteration complete ----------" %(loop)
-    loop = loop + 1
-    '''
-  
-  #print "[main] Rospy shutdown detected. Stopped drone ROS modules!"
-
+      drone.callback("end")
+      print "[main] Drone modules stopped"
 

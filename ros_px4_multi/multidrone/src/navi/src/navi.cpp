@@ -179,29 +179,19 @@ double range_calc(float lat, float lon, float alt, float t_lat, float t_lon, flo
   argv               argument vector
 -----------------------------------------------------------------------------*/
 int main(int argc, char **argv) {
-  int num_drones = std::stoi(argv[1]);
-  
+  // Let the module accept its ID from argument
+  int Drone_id = std::stoi(argv[1]);
+  if(i < 0){
+    return 1;
+  }
   //const char command []= "rosrun drone DroneRun.py %put drone count% &";
   //system(command);
   //havn't tested this^^ yet but it can potentially make this the 
   //only thing user need to manually execute
-  
-  // Spawn proccesses for each drone
-  int pid = -1;
-  int i = 0; 
-  for(i = 1; i < num_drones; i++){
-    pid = fork();
-    if(pid == -1) {
-      std::cerr << "Process spawning failed" << std::endl;
-    }
-    if(pid == 0) {
-      break;
-    }
-  }
 
   // Create names under namespace for individual drone
-  std::string nodename        = "px4_navi_" + std::to_string(i);
-  std::string group_ns        = "uav" + std::to_string(i);
+  std::string nodename        = "px4_navi_" + std::to_string(Drone_id);
+  std::string group_ns        = "uav" + std::to_string(Drone_id);
 
   // Create ros node
   ros::init(argc, argv, nodename);

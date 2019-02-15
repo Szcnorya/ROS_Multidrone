@@ -31,8 +31,6 @@ from std_msgs.msg import MultiArrayDimension
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import Twist, Vector3
 
-import FakeDroneSensor
-
 #TODO convert all pos to np array form
 
 '''[drone]----------------------------------------------------------------------
@@ -322,32 +320,6 @@ class vel_ref_publisher:
     self.pub.publish(msg)
 
 
-
-#TODO need to refactor for consistent naming or take out if unnecessary
-'''[DroneSensorSubscriber]-----------------------------------------------------
-  TODO
-----------------------------------------------------------------------------'''
-class DroneSensorSubscriber:
-  def __init__(self, id):
-    self.id = id
-    self.SensorReceiverName = "FakeDroneSensor_%d" %id
-    self.value = 0
-    self.sub = None
-
-  def setSubscribe(self):
-    if self.sub == None:
-      self.sub = rospy.Subscriber(self.SensorReceiverName, GasSensorData, self.SensorReceive)
-
-  def SensorReceive(self,msg):
-    self.value = msg.value
-    #print "Drone %d: received sensor data value %f" %(self.id, self.value)
-
-  def getValue(self):
-    #print "Get sensor value issued: last received value is %f" %(self.value)
-    return self.value
-
-
-
 '''[dist]----------------------------------------------------------------------
   Calculates distance between two points
 ----------------------------------------------------------------------------'''
@@ -359,93 +331,3 @@ def dist(p1, p2):
     total += (p2[i] - p1[i])**2
 
   return total**(1/2)
-
-
-
-'''[Older Classes]----------------------------------------------------------'''
-
-#DEPRECATED - need to update all topics to be able to use
-# Drone data aggregation class. Collects sensor data of interest for drone.
-# NEEDS UPDATING. CONFIGURED FOR PYTHON STANDALONE TEST RUNS
-'''[DroneDataCollection]-------------------------------------------------------
-  TODO
-----------------------------------------------------------------------------'''
-class DroneDataCollection:
-  # Constructor:
-  # NEEDS UPDATING. CONFIGURED FOR PYTHON STANDALONE TEST RUNS
-  # Standalone python test implementation keeps track of drone location/objective, time, maintains
-  # a map of fake events which determine fake sensor data output
-  def __init__(self, id):
-    self.id = id
-    self.GPSReceiverName = "iris_%d/mavros/state" %id
-    self.GPSReceiver = DroneGPSSubscriber(id)
-    self.WaypointPublisherName = "uav%d/Obj" %id
-    self.WaypointPublisher = DroneWaypointPublisher(id)
-    self.SensorReceiverName = "FakeDroneSensor_%d" %id
-    self.SensorReceiver = DroneSensorSubscriber(id)
-    self.GPSReceiver.setSubscribe()
-    GPSLoc = self.GPSReceiver.getGPS()
-    #while (GPSLoc['latitude'] == -1000):
-    #    self.GPSReceiver.setSubscribe()
-    #    GPSLoc = self.GPSReceiver.getGPS()
-    self.x = GPSLoc['latitude']
-    self.y = GPSLoc['longitude']
-    self.z = GPSLoc['altitude']
-    #print "Start GPS for drone %d dataaggregator is set! Start GPS is: (%f|%f|%f)" %(self.id, self.x, self.y, self.z)
-    self.xObjective = -1000
-    self.yObjective = -1000
-    self.zObjective = -1000
-    self.t = 0
-    self.DroneComms = None
-
-  # Should pull GPS/sensor data from NAVIO and return data in DroneMeasurement form
-  def GetNewMeasurement(self):
-    self.GPSReceiver.setSubscribe()
-    self.SensorReceiver.setSubscribe()
-    GPSLoc = self.GPSReceiver.getGPS()
-    SensorVal = self.SensorReceiver.getValue()
-    self.t = self.t + 1
-    self.x = GPSLoc['latitude']
-    self.y = GPSLoc['longitude']
-    self.z = GPSLoc['altitude']
-    return DroneMeasurement(self.x, self.y, self.z, self.t, SensorVal)
-
-  # Update maintained drone current location
-  def UpdateObjective(self, x, y, z):
-    self.xObjective = x
-    self.yObjective = y
-    self.zObjective = z
-    self.WaypointPublisher.setWaypoint({'latitude':self.xObjective,'longitude':self.yObjective,'altitude':self.zObjective})
-    #print "Updating objective for drone %d dataaggregator: (%f|%f|%f)" %(self.id, self.yObjective, self.xObjective, self.zObjective)
-
-  def GetGPS(self):
-    return {'x':self.x,'y':self.y,'z':self.z}
-
-  def publishWaypoint(self):
-    self.WaypointPublisher.publishWaypoint()
-
-#DEPRECATED
-# should change isClose to a euclidean distance measurer
-# Holder class for measurements, maintains GPS location, time, and value variables
-'''[DroneMeasurement]----------------------------------------------------------
-  TODO
-----------------------------------------------------------------------------'''
-class DroneMeasurement:
-  def __init__( self, x, y, z, tTime, value ):
-    self.x = x;
-    self.y = y;
-    self.z = z;
-    self.t = tTime;
-    self.value = value;
-    self.proximityReq = 1
-
-  # Returns whether input measurement is close to current measurement (within proximity requirement)
-  def isClose(self,measurement):
-    if ( ( self.x - measurement.x ) ** 2 + ( self.y - measurement.y ) ** 2 + ( self.z - measurement.z )** 2) ** (1./2) <= self.proximityReq:
-      return True;
-    else:
-      return False;
-
-  # Prints measurement to JSON format
-  def toJSON(self):
-    return json.dumps( self, default=lambda o: o.__dict__ );

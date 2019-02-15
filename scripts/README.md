@@ -1,3 +1,7 @@
+<!-- NOTE: Outdated Now for real drone !
+     2019/2/14
+ -->
+
 What these scripts do:
 launch_sim.sh takes in number of drones as cmdline parameter and start the individual components of the simulation (launch gazebo, start ros nodes, and have drones communicate between ROS and Gazebo).
 
