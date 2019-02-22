@@ -23,16 +23,31 @@ import time
 import json
 
 import DroneModule
-
+from std_msgs.msg import String
+ 
 '''[GLOBAL VARS]------------------------------------------------------------'''
-COMM_DROPOFF = 25
-#FAKE_GPS_ORIGIN_X = 47.3667
-#FAKE_GPS_ORIGIN_Y = 8.5500
-#FAKE_GPS_ORIGIN_Z = 408.0
-
 FAKE_GPS_ORIGIN_X = 47.39774
 FAKE_GPS_ORIGIN_Y = 8.54561
 FAKE_GPS_ORIGIN_Z = 408.0
+
+
+'''[Message Handler]-----------------------------------------------------------
+  Listen to topic uav<id>/ready, return true to isReady only after a message 
+  "Go" received
+----------------------------------------------------------------------------'''
+class TakeOffMsgSubscriber:
+  def __init__(self,id):
+    self.sub_name = "uav%d/ready" % id
+    self.ready = False
+    self.pub = rospy.Subscriber(self.sub_name, String, self.ready_msg_callback)
+    
+  def ready_msg_callback(self, msg):
+    if msg.data == "GO":
+      self.ready = True
+  
+  def isReady():
+    return self.ready
+
 
 '''[main]----------------------------------------------------------------------
   Drives program, initializes all modules and drones as well as their ROS
@@ -69,10 +84,13 @@ if __name__ == "__main__":
   drone = DroneModule.drone(bounds, DroneID)
   print "[main] Drone id %d created" % DroneID
 
-  #TODO: Test aging exponent in sim
-  print "[main] Starting loop!"
-  
-  #TODO: Add a blocking barrier here waiting for take off message
+  #a blocking barrier here waiting for take off message
+  takeOffListener = TakeOffMsgSubscriber(DroneID)  
+  print "[main] Wait for take-off mesaage"
+  while not takeOffListener.isReady():
+    time.sleep(1)
+
+  print "[main] Message received, Starting loop!"
   drone.start()
 
   loop = 1
