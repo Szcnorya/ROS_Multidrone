@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
   // Set initial target position to 30 meters above home position
   pos_target.latitude  = pos_gps.latitude;
   pos_target.longitude = pos_gps.longitude;
-  pos_target.altitude  = pos_gps.altitude + 30;
+  pos_target.altitude  = pos_gps.altitude + 1;
 
   // Publish init target to stream so offboard doesn't shut down immediately
   for(int i = 100; ros::ok() && i > 0; --i){

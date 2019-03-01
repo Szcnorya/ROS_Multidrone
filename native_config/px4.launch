@@ -3,11 +3,11 @@
 	<!-- example launch script for PX4 based FCU's -->
 	<group ns="uav1">
 		<!-- MavRos Id -->
-		<arg name="system_id" default="1">
-		<arg name="component_id" default="1">
+		<arg name="system_id" default="1"/>
+		<arg name="component_id" default="1"/>
 		<!-- How to connect FCU(PX4 process in our case) part -->
-		<arg name="fcu_url" default="udp://:14540@localhost:14557" />
-		<!-- A proxy to fcu(we don't need it) -->
+		<arg name="fcu_url" default="udp://:14542@localhost:14541" />
+		<!-- Ground control station URL? Okay but mavros should not talk with it -->
 		<arg name="gcs_url" default="" />
 		<arg name="fcu_protocol" default="v2.0" />
 		<!-- This need to be consistent with drone ID -->
