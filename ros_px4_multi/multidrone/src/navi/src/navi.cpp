@@ -181,7 +181,7 @@ double range_calc(float lat, float lon, float alt, float t_lat, float t_lon, flo
 int main(int argc, char **argv) {
   // Let the module accept its ID from argument
   int Drone_id = std::stoi(argv[1]);
-  if(i < 0){
+  if(Drone_id < 0){
     return 1;
   }
   //const char command []= "rosrun drone DroneRun.py %put drone count% &";

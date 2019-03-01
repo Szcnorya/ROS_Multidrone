@@ -45,7 +45,7 @@ class TakeOffMsgSubscriber:
     if msg.data == "GO":
       self.ready = True
   
-  def isReady():
+  def isReady(self):
     return self.ready
 
 
